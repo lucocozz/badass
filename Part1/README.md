@@ -22,5 +22,5 @@ The key difference between _OSPF_ and _BGP_ is that _OSPF_ is an interior gatewa
 ### What is _FRRouting_ ?
 _FRRouting (FRR)_ is an IP routing protocol suite for Unix and Linux platforms which includes protocol daemons for _BGP_, _IS-IS_, _LDP_, _OSPF_, _PIM_, and _RIP_. _FRR_’s seamless integration with the native Linux/Unix IP networking stacks makes it a natural fit for cloud environments. _FRR_ provides a suite of scalable routing protocols that are well suited for large cloud deployments.
 
-### What is Busybox ?
+### What is _Busybox_ ?
 _BusyBox_ is a software suite that provides several Unix utilities in a single executable file. It runs in a variety of POSIX environments such as Linux, Android, and FreeBSD, although many of the tools it provides are designed to work with interfaces provided by the Linux kernel. As such, it is a very useful tool for embedded systems. It contains commonly used commands, such as `cd`, `ls`, `sh`, `tar`, etc.
