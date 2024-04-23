@@ -1,0 +1,2 @@
+# Override busybox's ip command
+alias ip='/sbin/ip'
