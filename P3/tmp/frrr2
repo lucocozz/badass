@@ -1,0 +1,51 @@
+# Create a new bridge named br0
+ip link add br0 type bridge
+
+# Bring up the bridge br0
+ip link set dev br0 up
+
+# Create a new VXLAN interface named vxlan10 with VXLAN Network Identifier (VNI) 10
+ip link add vxlan10 type vxlan id 10 dstport 4789
+
+# Bring up the VXLAN interface vxlan10
+ip link set dev vxlan10 up
+
+# Add the VXLAN interface vxlan10 to the bridge br0
+brctl addif br0 vxlan10
+
+# Add the Ethernet interface eth1 to the bridge br0
+brctl addif br0 eth1
+
+# Set the hostname of the router
+hostname frrr-2
+
+# Disable IPv6 forwarding
+no ipv6 forwarding
+
+# Configure IP address for interface eth0 and set its OSPF area to 0
+interface eth0
+ip address 10.1.1.2/30
+ip ospf area 0
+
+# Configure IP address for loopback interface and set its OSPF area to 0
+interface lo
+ip address 1.1.1.2/32
+ip ospf area 0
+
+# Configure BGP with AS number 1 and set neighbor details
+router bgp 1
+neighbor 1.1.1.1 remote-as 1
+neighbor 1.1.1.1 update-source lo
+
+# Enable EVPN address family and activate it for the neighbor 1.1.1.1
+address-family l2vpn evpn
+neighbor 1.1.1.1 activate
+
+# Advertise all VNI
+advertise-all-vni
+
+# Exit the EVPN address family configuration
+exit-address-family
+
+# Configure OSPF
+router ospf

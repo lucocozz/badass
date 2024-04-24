@@ -1,0 +1,51 @@
+# Set the hostname of the router
+hostname frrr-1
+
+# Disable IPv6 forwarding
+no ipv6 forwarding
+
+# Configure IP addresses for interfaces eth0, eth1, and eth2
+interface eth0
+ip address 10.1.1.1/30
+
+interface eth1
+ip address 10.1.1.5/30
+
+interface eth2
+ip address 10.1.1.9/30
+
+# Configure IP address for loopback interface
+interface lo
+ip address 1.1.1.1/32
+
+# Configure BGP with AS number 1
+router bgp 1
+
+# Define a peer group named 'ibgp'
+neighbor ibgp peer-group
+
+# Set the remote AS number for the 'ibgp' peer group to 1
+neighbor ibgp remote-as 1
+
+# Set the source of BGP updates to the loopback interface
+neighbor ibgp update-source lo
+
+# Allow BGP to listen for peers in the 1.1.1.0/29 range and assign them to the 'ibgp' peer group
+bgp listen range 1.1.1.0/29 peer-group ibgp
+
+# Enable EVPN address family and activate it for the 'ibgp' peer group
+address-family l2vpn evpn
+neighbor ibgp activate
+
+# Set the 'ibgp' peer group as a route reflector client
+neighbor ibgp route-reflector-client
+
+# Exit the EVPN address family configuration
+exit-address-family
+
+# Configure OSPF for all networks and set the area to 0
+router ospf
+network 0.0.0.0/0 area 0
+
+# Enable VTY (Virtual Teletype) lines for remote access
+line vty
