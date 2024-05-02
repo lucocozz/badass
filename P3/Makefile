@@ -1,6 +1,6 @@
 DOCKER_PRUNE := docker system prune
 
-build: host router
+build: host base_router bgp_router router
 
 clean:
 	$(DOCKER_PRUNE) -f

@@ -1,32 +1,66 @@
 #!/bin/bash
 
 # Check if the correct number of arguments are provided
-if [ "$#" -ne 2 ]; then
-	echo "Usage: $0 <local_ip> <vxlan_ip>"
+if [ "$#" -ne 4 ]; then
+	echo "Usage: $0 <hostname> <lo_cidr> <ip_cidr> <create_bridge>"
 	exit 1
 fi
 
-# Assign arguments to variables
-readonly LOCAL_IP=$1
-readonly VXLAN_IP=$2
+readonly HOSTNAME=$1
+readonly LO_CIDR=$2
+readonly IP_CIDR=$3
+readonly CREATE_BRIDGE=$4
 
-# Setup the bridge
-ip link add name br0 type bridge
-ip link set br0 up
 
-# Set IPv4 address on eth0
-ip addr add ${LOCAL_IP}/24 dev eth0
+/usr/lib/frr/frrinit.sh start
 
-# Setup VXLAN
-ip link add name vxlan10 type vxlan id 10 dev eth0 group 239.1.1.1 dstport 4789
-ip addr add ${VXLAN_IP}/24 dev vxlan10
 
-# Link eth1 and vxlan10 to the bridge
-ip link set eth1 master br0
-ip link set vxlan10 master br0
+if [ "$CREATE_BRIDGE" = "true" ]; then
+	ip link add br0 type bridge
+	ip link set dev br0 up
+	ip link add vxlan10 type vxlan id 10 dstport 4789
+	ip link set dev vxlan10 up
 
-# Enable the interface
-ip link set vxlan10 up
+	brctl addif br0 vxlan10
+	brctl addif br0 eth1
+fi
+
+vtysh << EOM
+conf t
+# Set the hostname of the router
+hostname ${HOSTNAME}
+
+# Disable IPv6 forwarding
+no ipv6 forwarding
+
+# Configure IP address for interface eth0 and set its OSPF area to 0
+interface eth0
+ip address ${IP_CIDR}
+ip ospf area 0
+
+# Configure IP address for loopback interface and set its OSPF area to 0
+interface lo
+ip address ${LO_CIDR}
+ip ospf area 0
+
+# Configure BGP with AS number 1 and set neighbor details
+router bgp 1
+neighbor 1.1.1.1 remote-as 1
+neighbor 1.1.1.1 update-source lo
+
+# Enable EVPN address family and activate it for the neighbor 1.1.1.1
+address-family l2vpn evpn
+neighbor 1.1.1.1 activate
+
+# Advertise all VNI
+advertise-all-vni
+
+# Exit the EVPN address family configuration
+exit-address-family
+
+# Configure OSPF
+router ospf
+EOM
 
 # Keep the script running
 while true; do
