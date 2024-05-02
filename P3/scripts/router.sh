@@ -1,29 +1,26 @@
 #!/bin/bash
 
 # Check if the correct number of arguments are provided
-if [ "$#" -ne 4 ]; then
-	echo "Usage: $0 <hostname> <lo_cidr> <ip_cidr> <create_bridge>"
+if [ "$#" -ne 3 ]; then
+	echo "Usage: $0 <hostname> <lo_addr> <ip_cidr>"
 	exit 1
 fi
 
 readonly HOSTNAME=$1
-readonly LO_CIDR=$2
+readonly LO_ADDR=$2
 readonly IP_CIDR=$3
-readonly CREATE_BRIDGE=$4
 
 
 /usr/lib/frr/frrinit.sh start
 
+ip link add br0 type bridge
+ip link set dev br0 up
+ip link add vxlan10 type vxlan id 10 dstport 4789
+ip link set dev vxlan10 up
 
-if [ "$CREATE_BRIDGE" = "true" ]; then
-	ip link add br0 type bridge
-	ip link set dev br0 up
-	ip link add vxlan10 type vxlan id 10 dstport 4789
-	ip link set dev vxlan10 up
+brctl addif br0 vxlan10
+brctl addif br0 eth1
 
-	brctl addif br0 vxlan10
-	brctl addif br0 eth1
-fi
 
 vtysh << EOM
 conf t
@@ -40,7 +37,7 @@ ip ospf area 0
 
 # Configure IP address for loopback interface and set its OSPF area to 0
 interface lo
-ip address ${LO_CIDR}
+ip address ${LO_ADDR}/32
 ip ospf area 0
 
 # Configure BGP with AS number 1 and set neighbor details

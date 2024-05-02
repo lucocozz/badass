@@ -2,12 +2,12 @@
 
 # Check if the correct number of arguments are provided
 if [ "$#" -ne 5 ]; then
-	echo "Usage: $0 <hostname> <lo_cidr> <eth0_cidr> <eth1_cidr> <eth2_cidr>"
+	echo "Usage: $0 <hostname> <lo_addr> <eth0_cidr> <eth1_cidr> <eth2_cidr>"
 	exit 1
 fi
 
 readonly HOSTNAME=$1
-readonly LO_CIDR=$2
+readonly LO_ADDR=$2
 readonly ETH0_CIDR=$3
 readonly ETH1_CIDR=$4
 readonly ETH2_CIDR=$5
@@ -36,7 +36,7 @@ ip address ${ETH2_CIDR}
 
 # Configure IP address for loopback interface
 interface lo
-ip address ${LO_CIDR}
+ip address ${LO_ADDR}/32
 
 # Configure BGP with AS number
 router bgp 1
