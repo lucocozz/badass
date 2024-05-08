@@ -10,7 +10,6 @@ readonly IP_CIDR=$1
 
 
 ip address add ${IP_CIDR} dev eth0
-ip link set eth0 up
 
 # Keep the script running
 while true; do

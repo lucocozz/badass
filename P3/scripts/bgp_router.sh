@@ -17,53 +17,34 @@ readonly ETH2_CIDR=$5
 # Start vtysh shell
 vtysh << EOM
 conf t
-
-# Set the hostname of the router
 hostname ${HOSTNAME}
-
-# Disable IPv6 forwarding
 no ipv6 forwarding
 
-# Configure IP addresses for interfaces eth0, eth1, and eth2
 interface eth0
-ip address ${ETH0_CIDR}
+	ip address ${ETH0_CIDR}
 
 interface eth1
-ip address ${ETH1_CIDR}
+	ip address ${ETH1_CIDR}
 
 interface eth2
-ip address ${ETH2_CIDR}
+	ip address ${ETH2_CIDR}
 
-# Configure IP address for loopback interface
 interface lo
-ip address ${LO_ADDR}/32
+	ip address ${LO_ADDR}/32
 
-# Configure BGP with AS number
 router bgp 1
+	neighbor ibgp peer-group
+	neighbor ibgp remote-as 1
+	neighbor ibgp update-source lo
+	bgp listen range 1.1.1.0/24 peer-group ibgp
 
-# Define a peer group named 'ibgp'
-neighbor ibgp peer-group
-
-# Set the remote AS number for the 'ibgp' peer group to 1
-neighbor ibgp remote-as 1
-
-# Set the source of BGP updates to the loopback interface
-neighbor ibgp update-source lo
-
-# Allow BGP to listen for peers in the 1.1.1.0/29 and assign them to the 'ibgp' peer group
-bgp listen range 1.1.1.0/29 peer-group ibgp
-
-# Enable EVPN address family and activate it for the 'ibgp' peer group
 address-family l2vpn evpn
-neighbor ibgp activate
-neighbor ibgp route-reflector-client
-
-# Exit the EVPN address family configuration
-exit-address-family
+	neighbor ibgp activate
+	neighbor ibgp route-reflector-client
+	exit-address-family
 
 router ospf
-network 0.0.0.0/0 area 0
-line vty
+	network 0.0.0.0/0 area 0
 
 EOM
 

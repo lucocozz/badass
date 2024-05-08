@@ -24,38 +24,26 @@ brctl addif br0 eth1
 
 vtysh << EOM
 conf t
-# Set the hostname of the router
 hostname ${HOSTNAME}
-
-# Disable IPv6 forwarding
 no ipv6 forwarding
 
-# Configure IP address for interface eth0 and set its OSPF area to 0
 interface eth0
-ip address ${IP_CIDR}
-ip ospf area 0
+	ip address ${IP_CIDR}
+	ip ospf area 0
 
-# Configure IP address for loopback interface and set its OSPF area to 0
 interface lo
-ip address ${LO_ADDR}/32
-ip ospf area 0
+	ip address ${LO_ADDR}/32
+	ip ospf area 0
 
-# Configure BGP with AS number 1 and set neighbor details
 router bgp 1
-neighbor 1.1.1.1 remote-as 1
-neighbor 1.1.1.1 update-source lo
+	neighbor 1.1.1.1 remote-as 1
+	neighbor 1.1.1.1 update-source lo
 
-# Enable EVPN address family and activate it for the neighbor 1.1.1.1
 address-family l2vpn evpn
-neighbor 1.1.1.1 activate
+	neighbor 1.1.1.1 activate
+	advertise-all-vni
+	exit-address-family
 
-# Advertise all VNI
-advertise-all-vni
-
-# Exit the EVPN address family configuration
-exit-address-family
-
-# Configure OSPF
 router ospf
 EOM
 
